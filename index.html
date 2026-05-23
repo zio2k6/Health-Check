@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f1e3" />
+  <title>Health Check Demo</title>
+  <style>
+    :root {
+      --bg: #f7f1e3;
+      --card: #ffffff;
+      --ink: #111111;
+      --accent: #ffcc00;
+      --accent-2: #ff7a59;
+      --good: #2ecc71;
+      --warn: #f39c12;
+      --bad: #e74c3c;
+      --shadow: 6px 6px 0 #111111;
+      --border: 4px solid #111111;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      background: var(--bg);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(135deg, rgba(255, 204, 0, 0.18) 0 25%, transparent 25% 100%),
+        linear-gradient(315deg, rgba(255, 122, 89, 0.14) 0 25%, transparent 25% 100%),
+        var(--bg);
+      color: var(--ink);
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: none;
+      touch-action: manipulation;
+    }
+
+    .wrap {
+      width: min(100%, 1120px);
+      margin: 0 auto;
+      padding:
+        max(16px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        max(24px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
+    }
+
+    .hero {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1.4fr 1fr;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+
+    .panel, .card, .result {
+      background: var(--card);
+      border: var(--border);
+      box-shadow: var(--shadow);
+      border-radius: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--accent);
+      border: var(--border);
+      border-radius: 999px;
+      font-weight: 800;
+      width: fit-content;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 3.6rem);
+      line-height: 1;
+      letter-spacing: -1px;
+      text-transform: uppercase;
+    }
+
+    .lead {
+      font-size: 1.02rem;
+      line-height: 1.6;
+      max-width: 62ch;
+      margin: 0 0 18px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stat {
+      padding: 14px;
+      border: var(--border);
+      border-radius: 16px;
+      background: #fff7d1;
+      box-shadow: 4px 4px 0 #111;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+    }
+
+    .stat span {
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .card {
+      padding: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 52px;
+      padding: 14px 14px;
+      font-size: 1rem;
+      border: var(--border);
+      border-radius: 14px;
+      outline: none;
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 4px 4px 0 #111;
+    }
+
+    input:focus, select:focus {
+      transform: translate(-1px, -1px);
+      box-shadow: 6px 6px 0 #111;
+    }
+
+    .span-2 {
+      grid-column: span 2;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    button {
+      cursor: pointer;
+      min-height: 52px;
+      border: var(--border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 1rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 4px 4px 0 #111;
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+
+    button:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 5px 5px 0 #111;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: var(--ink);
+    }
+
+    .ghost {
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .result {
+      margin-top: 18px;
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+      scroll-margin-top: 16px;
+    }
+
+    .result-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: var(--border);
+      font-weight: 900;
+      box-shadow: 3px 3px 0 #111;
+    }
+
+    .pill.good { background: #c9f7d7; }
+    .pill.warn { background: #ffe6a3; }
+    .pill.bad { background: #ffc0b8; }
+
+    .meter {
+      border: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      height: 28px;
+      background: #fff;
+      box-shadow: 4px 4px 0 #111;
+    }
+
+    .meter > div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c);
+      transition: width 0.4s ease;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .box {
+      padding: 14px;
+      border: var(--border);
+      border-radius: 14px;
+      background: #f5f5f5;
+    }
+
+    .box h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .box p {
+      margin: 0;
+      line-height: 1.55;
+    }
+
+    .hint {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #2d2d2d;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      padding: 16px;
+      border-left: 8px solid var(--accent-2);
+      background: #fff7ef;
+      border-radius: 12px;
+      line-height: 1.6;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: #444;
+    }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .hero {
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .form-grid, .grid-2 { grid-template-columns: 1fr; }
+      .span-2 { grid-column: auto; }
+      .panel, .card, .result { padding: 16px; }
+      h1 { font-size: 2.15rem; }
+      .lead { font-size: 0.98rem; }
+
+      .actions {
+        flex-direction: column;
+        position: sticky;
+        bottom: max(12px, env(safe-area-inset-bottom));
+        padding-top: 12px;
+        background: linear-gradient(to top, rgba(255, 255, 255, 0.98) 72%, rgba(255, 255, 255, 0));
+      }
+
+      .actions button {
+        width: 100%;
+      }
+
+      .stats {
+        gap: 10px;
+      }
+
+      .stat, .box, .footer-note {
+        border-width: 3px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="panel">
+        <div class="badge">🩺 Health Check Demo</div>
+        <h1>Kiểm tra tình trạng sức khỏe nhanh</h1>
+        <p class="lead">
+          Nhập cân nặng, chiều cao và một vài thông tin cơ bản để xem chỉ số BMI,
+          nhóm thể trạng và các gợi ý chăm sóc sức khỏe ban đầu. Đây là bản demo trực tiếp,
+          có thể mở lên để thử ngay.
+        </p>
+
+        <div class="stats">
+          <div class="stat">
+            <strong>BMI</strong>
+            <span>Chỉ số khối cơ thể giúp ước lượng thể trạng.</span>
+          </div>
+          <div class="stat">
+            <strong>Phân loại</strong>
+            <span>Gầy, bình thường, thừa cân hoặc béo phì.</span>
+          </div>
+          <div class="stat">
+            <strong>Khuyến nghị</strong>
+            <span>Gợi ý cơ bản về ăn uống và vận động.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <form id="healthForm">
+          <div class="form-grid">
+            <div class="field span-2">
+              <label for="name">Họ và tên</label>
+              <input id="name" name="name" type="text" placeholder="Ví dụ: Nguyễn Văn A" />
+            </div>
+
+            <div class="field">
+              <label for="age">Tuổi</label>
+              <input id="age" name="age" type="number" min="1" max="120" placeholder="25" required />
+            </div>
+
+            <div class="field">
+              <label for="gender">Giới tính</label>
+              <select id="gender" name="gender" required>
+                <option value="male">Nam</option>
+                <option value="female">Nữ</option>
+                <option value="other">Khác</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="weight">Cân nặng (kg)</label>
+              <input id="weight" name="weight" type="number" min="1" max="500" step="0.1" placeholder="60" required />
+            </div>
+
+            <div class="field">
+              <label for="height">Chiều cao (cm)</label>
+              <input id="height" name="height" type="number" min="30" max="250" step="0.1" placeholder="170" required />
+            </div>
+
+            <div class="field span-2">
+              <label for="activity">Mức độ vận động</label>
+              <select id="activity" name="activity" required>
+                <option value="low">Ít vận động</option>
+                <option value="moderate" selected>Vận động vừa</option>
+                <option value="high">Vận động nhiều</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="primary" type="submit">Xem kết quả</button>
+            <button class="ghost" type="button" id="fillDemo">Điền dữ liệu mẫu</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="result" aria-live="polite">
+      <div class="result-top">
+        <div>
+          <h2 id="resultTitle" style="margin:0 0 6px;">Kết quả sẽ hiển thị ở đây</h2>
+          <div class="small" id="resultSubtitle">Nhập thông tin và bấm “Xem kết quả”.</div>
+        </div>
+        <div class="pill warn" id="statusPill">Chưa đánh giá</div>
+      </div>
+
+      <div class="meter" aria-label="Thanh đánh giá thể trạng">
+        <div id="meterBar"></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="box">
+          <h3>Chỉ số BMI</h3>
+          <p id="bmiText">--</p>
+        </div>
+        <div class="box">
+          <h3>Ước tính cân nặng hợp lý</h3>
+          <p id="idealWeightText">--</p>
+        </div>
+        <div class="box">
+          <h3>Tình trạng sức khỏe</h3>
+          <p id="healthStatusText">--</p>
+        </div>
+        <div class="box">
+          <h3>Nhận xét nhanh</h3>
+          <p id="summaryText">--</p>
+        </div>
+        <div class="box">
+          <h3>Gợi ý ban đầu</h3>
+          <p id="adviceText">--</p>
+        </div>
+        <div class="box">
+          <h3>Kế hoạch 7 ngày</h3>
+          <p id="planText">--</p>
+        </div>
+      </div>
+
+      <div class="footer-note">
+        <strong>Lưu ý:</strong>
+        <span>
+          Đây là công cụ tham khảo nhanh, không thay thế tư vấn y tế chuyên môn.
+          Nếu có triệu chứng bất thường hoặc bệnh nền, nên gặp bác sĩ để được đánh giá đầy đủ.
+        </span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById('healthForm');
+    const fillDemoBtn = document.getElementById('fillDemo');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultSubtitle = document.getElementById('resultSubtitle');
+    const statusPill = document.getElementById('statusPill');
+    const meterBar = document.getElementById('meterBar');
+    const resultSection = document.querySelector('.result');
+    const bmiText = document.getElementById('bmiText');
+    const idealWeightText = document.getElementById('idealWeightText');
+    const healthStatusText = document.getElementById('healthStatusText');
+    const summaryText = document.getElementById('summaryText');
+    const adviceText = document.getElementById('adviceText');
+    const planText = document.getElementById('planText');
+
+    const setStatus = (label, tone) => {
+      statusPill.textContent = label;
+      statusPill.className = `pill ${tone}`;
+    };
+
+    const classifyBmi = (bmi) => {
+      if (bmi < 18.5) return { label: 'Gầy', tone: 'warn', score: 25, summary: 'Cân nặng đang thấp hơn mức khuyến nghị.', status: 'Cần cải thiện dinh dưỡng và theo dõi cân nặng.' };
+      if (bmi < 23) return { label: 'Bình thường', tone: 'good', score: 70, summary: 'Thể trạng đang ở vùng phù hợp.', status: 'Sức khỏe hiện tại khá ổn định.' };
+      if (bmi < 25) return { label: 'Thừa cân', tone: 'warn', score: 82, summary: 'Cân nặng cao hơn mức tối ưu một chút.', status: 'Nên điều chỉnh ăn uống và tăng vận động.' };
+      if (bmi < 30) return { label: 'Béo phì độ 1', tone: 'bad', score: 92, summary: 'Nên điều chỉnh chế độ ăn và vận động.', status: 'Nguy cơ chuyển hóa tăng, cần kiểm soát sớm.' };
+      return { label: 'Béo phì độ 2+', tone: 'bad', score: 100, summary: 'Rủi ro sức khỏe tăng, nên theo dõi kỹ.', status: 'Nên gặp nhân viên y tế để được đánh giá chi tiết.' };
+    };
+
+    const getAdvice = (classified, activity, age) => {
+      const base = {
+        low: 'Tăng vận động nhẹ mỗi ngày như đi bộ 30 phút, đứng dậy vận động sau mỗi 60 phút ngồi.',
+        moderate: 'Duy trì tập luyện đều đặn 150 phút/tuần và ngủ đủ 7–8 giờ mỗi đêm.',
+        high: 'Giữ lịch tập hợp lý, ăn đủ đạm, uống đủ nước và ưu tiên hồi phục cơ thể.'
+      }[activity];
+
+      const extra =
+        classified.label === 'Gầy'
+          ? 'Ưu tiên thêm bữa phụ giàu protein, tinh bột tốt và chất béo lành mạnh.'
+          : classified.label === 'Bình thường'
+          ? 'Duy trì thói quen hiện tại, ăn đa dạng và khám sức khỏe định kỳ 6–12 tháng/lần.'
+          : 'Giảm đồ ngọt, đồ chiên, tăng rau xanh, kiểm soát khẩu phần và cân nặng mỗi tuần.';
+
+      return age >= 40 ? `${base} ${extra} Ở độ tuổi này nên chú ý huyết áp, mỡ máu và đường huyết.` : `${base} ${extra}`;
+    };
+
+    const getPlan = (classified) => {
+      if (classified.label === 'Gầy') {
+        return 'Ngày 1-2: tăng 1 bữa phụ. Ngày 3-4: thêm đạm tốt vào mỗi bữa. Ngày 5-7: theo dõi cân nặng, ngủ sớm và đánh giá lại sau 2 tuần.';
+      }
+      if (classified.label === 'Bình thường') {
+        return 'Ngày 1-2: duy trì thực đơn hiện tại. Ngày 3-4: đi bộ hoặc tập nhẹ 30 phút. Ngày 5-7: giữ nhịp ngủ nghỉ đều và đo lại cân nặng sau 1–2 tuần.';
+      }
+      return 'Ngày 1-2: giảm nước ngọt và đồ chiên. Ngày 3-4: tăng rau, protein nạc và đi bộ 30 phút. Ngày 5-7: kiểm tra cân nặng, vòng bụng và duy trì đều đặn mỗi tuần.';
+    };
+
+    const formatKg = (value) => `${value.toFixed(1)} kg`;
+
+    const runCheck = () => {
+      const name = document.getElementById('name').value.trim() || 'Bạn';
+      const age = Number(document.getElementById('age').value);
+      const gender = document.getElementById('gender').value;
+      const weight = Number(document.getElementById('weight').value);
+      const heightCm = Number(document.getElementById('height').value);
+      const activity = document.getElementById('activity').value;
+
+      if (!age || !weight || !heightCm) return;
+
+      const heightM = heightCm / 100;
+      const bmi = weight / (heightM * heightM);
+      const classified = classifyBmi(bmi);
+      const idealMin = 18.5 * heightM * heightM;
+      const idealMax = 22.9 * heightM * heightM;
+      const idealCenter = (idealMin + idealMax) / 2;
+      const displayGender = gender === 'male' ? 'Nam' : gender === 'female' ? 'Nữ' : 'Khác';
+
+      resultTitle.textContent = `${name}, đây là kết quả của bạn`;
+      resultSubtitle.textContent = `${age} tuổi • ${displayGender} • ${heightCm.toFixed(0)} cm • ${weight.toFixed(1)} kg`;
+      setStatus(classified.label, classified.tone);
+      meterBar.style.width = `${classified.score}%`;
+
+      bmiText.textContent = `${bmi.toFixed(1)} (${classified.label})`;
+      idealWeightText.textContent = `${formatKg(idealMin)} - ${formatKg(idealMax)}; mốc trung tâm khoảng ${idealCenter.toFixed(1)} kg`;
+      healthStatusText.textContent = classified.status;
+      summaryText.textContent = classified.summary;
+      adviceText.textContent = getAdvice(classified, activity, age);
+      planText.textContent = getPlan(classified);
+      resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      runCheck();
+    });
+
+    fillDemoBtn.addEventListener('click', () => {
+      document.getElementById('name').value = 'Trần Minh Anh';
+      document.getElementById('age').value = '28';
+      document.getElementById('gender').value = 'female';
+      document.getElementById('weight').value = '56';
+      document.getElementById('height').value = '162';
+      document.getElementById('activity').value = 'moderate';
+      runCheck();
+    });
+
+    setStatus('Chưa đánh giá', 'warn');
+    meterBar.style.width = '8%';
+  </script>
+</body>
+</html>
